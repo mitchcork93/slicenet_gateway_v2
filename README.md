@@ -1,1 +1,1 @@
-# slicenet_gateway_v2_GPU
+# slicenet_gateway_v2
