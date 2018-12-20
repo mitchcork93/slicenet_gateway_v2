@@ -1,1 +1,1 @@
-# slicenet_gateway_v2
+# slicenet_gateway
