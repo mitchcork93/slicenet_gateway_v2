@@ -32,7 +32,6 @@ class MyClientProtocol(WebSocketClientProtocol):
 
         self.cap = cv2.VideoCapture(1)
         self.window = tk.Tk()
-        #self.window.iconbitmap("images\\favicon.ico")
         self.window.title("SliceNet Diagnostic v1.0")
         self.window.configure(bg="white")
         self.window.resizable(0,0)
@@ -225,6 +224,7 @@ class MyClientProtocol(WebSocketClientProtocol):
                     if frame is not None:
                         frame1 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                         self.cam1 = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame1))
+                        self.window.iconbitmap("images/favicon.ico")
                         self.update()
 
                 sys.exit()
