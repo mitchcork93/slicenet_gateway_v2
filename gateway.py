@@ -145,9 +145,9 @@ class MyClientProtocol(WebSocketClientProtocol):
         R1 = tk.Radiobutton(pr_3, text="Show both screens", variable=var, value=1, command=swich,bg="white",font=('Arial', 12))
         R1.pack(anchor="w")
         R1.select()
-        R2 = tk.Radiobutton(pr_3, text="Show only live stream", variable=var, value=2,command=swich,bg="white",font=('Arial', 12))
+        R2 = tk.Radiobutton(pr_3, text="Only show live stream", variable=var, value=2,command=swich,bg="white",font=('Arial', 12))
         R2.pack(anchor="w")
-        R3 = tk.Radiobutton(pr_3, text="Show only ML procesed stream", variable=var, value=3,command=swich,bg="white",font=('Arial', 12))
+        R3 = tk.Radiobutton(pr_3, text="Only show ML processed stream", variable=var, value=3,command=swich,bg="white",font=('Arial', 12))
         R3.pack(anchor="w")
 
         PRframe1 = tk.Frame(self.baseline,bg="white")
