@@ -8,13 +8,12 @@ import cPickle
 import sys
 import logging
 import thread
-import threading
 import json
 import time
 import Tkinter as tk
-import random
 import PIL.Image, PIL.ImageTk
-import pyglet
+import tkMessageBox
+import random
 
 
 class MyClientProtocol(WebSocketClientProtocol):
@@ -24,8 +23,6 @@ class MyClientProtocol(WebSocketClientProtocol):
         self.capture_thread = None
         self.isComplete = False
         self.isCapturing = True
-        self.camera_one_image = None
-        self.camera_two_image = None
         self.mode = "IDENT"
         self.cam1 = None
         self.cam2 = None
@@ -35,6 +32,15 @@ class MyClientProtocol(WebSocketClientProtocol):
         self.window.title("SliceNet Diagnostic v1.0")
         self.window.configure(bg="white")
         self.window.resizable(0,0)
+        self.window.protocol("WM_DELETE_WINDOW", self.close)
+
+    def close(self):
+
+        if tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
+            self.window.destroy()
+            if self.cap.isOpened():
+                self.cap.release()
+            self.sendClose()
 
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
@@ -73,35 +79,35 @@ class MyClientProtocol(WebSocketClientProtocol):
         self.camera1_area.pack()
         self.camera1 = tk.Canvas(self.camera1_area, width=self.width, height=self.height,bg="white")
         self.camera1.pack()
+        self.baseline = tk.PanedWindow(self.secondscreen, orient=tk.HORIZONTAL,bg="white")
+        self.baseline.pack()
 
-        self.base = tk.PanedWindow(self.secondscreen,bg="white")
-        self.baseline = tk.PanedWindow(self.base, orient=tk.HORIZONTAL,bg="white")
-        self.base.pack(fill=tk.BOTH, expand=0)
-        self.base.add(self.baseline)
-        PRframe = tk.Frame(self.baseline,bg="white")
-        PRframe.pack(side="left")
-        self.PR = tk.PanedWindow(PRframe, orient=tk.VERTICAL,bg="white")
-        self.PR.pack()
+        PRframe = tk.PanedWindow(self.baseline,bg="white",orient=tk.VERTICAL)
+        self.baseline.add(PRframe)
+        namezone= tk.PanedWindow(PRframe, orient=tk.HORIZONTAL,bg="white")
+        PRframe.add(namezone)
+        name = tk.Label(namezone, text="Patient detected :", bg="white", font=('Arial', 20, 'bold'))
+        namezone.add(name)
+        self.name1 = tk.Label(namezone, text="Name", bg="white", anchor="w", font=('Arial', 20))
+        namezone.add(self.name1)
 
+        recordzone= tk.PanedWindow(PRframe, orient=tk.HORIZONTAL,bg="white")
+        PRframe.add(recordzone)
+        self.PR = tk.PanedWindow(recordzone, orient=tk.VERTICAL,bg="white")
+        recordzone.add(self.PR)
         self.pr = tk.PanedWindow(self.PR, orient=tk.VERTICAL, bg="white")
         self.PR.add(self.pr)
-        self.pr1 = tk.PanedWindow(self.pr, orient=tk.HORIZONTAL, bg="white")
-        self.pr.add(self.pr1)
-        name = tk.Label(self.pr1, text="Name :", bg="white", font=('Arial', 11,'bold'))
-        self.pr1.add(name)
-        self.name1 = tk.Label(self.pr1, text="Name", bg="white",anchor="w")
-        self.pr1.add(self.name1)
         pr2 = tk.PanedWindow(self.pr, orient=tk.HORIZONTAL, bg="white")
         self.pr.add(pr2)
         age = tk.Label(pr2, text="Age :", bg="white", font=('Arial', 11,'bold'))
         pr2.add(age)
-        self.age1 = tk.Label(pr2, text="Age", bg="white",anchor="w")
+        self.age1 = tk.Label(pr2, text="Age", bg="white",anchor="w",font=('Arial', 11))
         pr2.add(self.age1)
         pr3 = tk.PanedWindow(self.pr, orient=tk.HORIZONTAL, bg="white")
         self.pr.add(pr3)
         sex = tk.Label(pr3, text="Gender :", bg="white", font=('Arial', 11,'bold'))
         pr3.add(sex)
-        self.sex1 = tk.Label(pr3, text="Gender", bg="white",anchor="w")
+        self.sex1 = tk.Label(pr3, text="Gender", bg="white",anchor="w",font=('Arial', 11))
         pr3.add(self.sex1)
 
         pr_2 = tk.PanedWindow(self.PR, orient=tk.VERTICAL,bg="white")
@@ -110,21 +116,20 @@ class MyClientProtocol(WebSocketClientProtocol):
         pr_2.add(pr_21)
         dob = tk.Label(pr_21, text="Date :",bg="white",font=('Arial', 11,'bold'))
         pr_21.add(dob)
-        dob = tk.Label(pr_21, text="1.17.2019",bg="white",anchor="w")
-        pr_21.add(dob)
+        dob1 = tk.Label(pr_21, text="1.17.2019",bg="white",anchor="w",font=('Arial', 11))
+        pr_21.add(dob1)
         pr_22 = tk.PanedWindow(pr_2, orient=tk.HORIZONTAL,bg="white")
         pr_2.add(pr_22)
-        dob = tk.Label(pr_22, text="Reg. No :",bg="white",font=('Arial', 11,'bold'))
-        pr_22.add(dob)
-        dob = tk.Label(pr_22, text="123456789",bg="white",anchor="w")
-        pr_22.add(dob)
+        reg = tk.Label(pr_22, text="Reg. No :",bg="white",font=('Arial', 11,'bold'))
+        pr_22.add(reg)
+        reg1 = tk.Label(pr_22, text="123456789",bg="white",anchor="w",font=('Arial', 11))
+        pr_22.add(reg1)
         pr_23 = tk.PanedWindow(pr_2, orient=tk.HORIZONTAL,bg="white")
         pr_2.add(pr_23)
-        dob = tk.Label(pr_23, text="Health Status :",bg="white",font=('Arial', 11,'bold'))
-        pr_23.add(dob)
-        dob = tk.Label(pr_23, text="stable",bg="white",anchor="w")
-        pr_23.add(dob)
-
+        status = tk.Label(pr_23, text="Health Status :",bg="white",font=('Arial', 11,'bold'))
+        pr_23.add(status)
+        status1 = tk.Label(pr_23, text="stable",bg="white",anchor="w",font=('Arial', 11))
+        pr_23.add(status1)
         pr_3 = tk.PanedWindow(self.PR, orient=tk.VERTICAL,bg="white")
         self.PR.add(pr_3)
 
@@ -144,66 +149,70 @@ class MyClientProtocol(WebSocketClientProtocol):
         R1 = tk.Radiobutton(pr_3, text="Show both screens", variable=var, value=1, command=swich,bg="white",font=('Arial', 12))
         R1.pack(anchor="w")
         R1.select()
-        R2 = tk.Radiobutton(pr_3, text="Only show live stream", variable=var, value=2,command=swich,bg="white",font=('Arial', 12))
+        R2 = tk.Radiobutton(pr_3, text="Show only live stream", variable=var, value=2,command=swich,bg="white",font=('Arial', 12))
         R2.pack(anchor="w")
-        R3 = tk.Radiobutton(pr_3, text="Only show ML processed stream", variable=var, value=3,command=swich,bg="white",font=('Arial', 12))
+        R3 = tk.Radiobutton(pr_3, text="Show only ML processed stream", variable=var, value=3,command=swich,bg="white",font=('Arial', 12))
         R3.pack(anchor="w")
 
-        PRframe1 = tk.Frame(self.baseline,bg="white")
-        PRframe1.pack(side="left")
-        PR1 = tk.PanedWindow(PRframe1, orient=tk.VERTICAL,bg="white")
-        PR1.pack(side="top")
+        PR1 = tk.PanedWindow(recordzone, orient=tk.VERTICAL,bg="white")
+        # PR1.pack(side="top")
+        recordzone.add(PR1)
         weightzone = tk.PanedWindow(PR1, orient=tk.HORIZONTAL, bg="white")
         PR1.add(weightzone)
         weight = tk.Label(weightzone, text="Weight :", bg="white", font=('Arial', 11, 'bold'))
         weightzone.add(weight)
-        self.weight1 = tk.Label(weightzone, text="Weight", bg="white",anchor="w")
+        self.weight1 = tk.Label(weightzone, text="Weight", bg="white",anchor="w",font=('Arial', 11))
         weightzone.add(self.weight1)
 
         heightzone = tk.PanedWindow(PR1, orient=tk.HORIZONTAL, bg="white")
         PR1.add(heightzone)
         height = tk.Label(heightzone, text="Height :", bg="white", font=('Arial', 11, 'bold'))
         heightzone.add(height)
-        self.height1 = tk.Label(heightzone, text="Weight", bg="white",anchor="w")
+        self.height1 = tk.Label(heightzone, text="Weight", bg="white",anchor="w",font=('Arial', 11))
         heightzone.add(self.height1)
 
         bmizone = tk.PanedWindow(PR1, orient=tk.HORIZONTAL, bg="white")
         PR1.add(bmizone)
         bmi = tk.Label(bmizone, text="BMI :", bg="white", font=('Arial', 11, 'bold'))
         bmizone.add(bmi)
-        self.bmi1 = tk.Label(bmizone, text="BMI", bg="white",anchor="w")
+        self.bmi1 = tk.Label(bmizone, text="BMI", bg="white",anchor="w",font=('Arial', 11))
         bmizone.add(self.bmi1)
 
         temperaturezone = tk.PanedWindow(PR1, orient=tk.HORIZONTAL, bg="white")
         PR1.add(temperaturezone)
         temperature = tk.Label(temperaturezone, text="Temperature :", bg="white", font=('Arial', 11, 'bold'))
         temperaturezone.add(temperature)
-        self.temperature1 = tk.Label(temperaturezone, text="Temperature", bg="white",anchor="w")
+        self.temperature1 = tk.Label(temperaturezone, text="Temperature", bg="white",anchor="w",font=('Arial', 11))
         temperaturezone.add(self.temperature1)
 
         heartratezone = tk.PanedWindow(PR1, orient=tk.HORIZONTAL, bg="white")
         PR1.add(heartratezone)
         heartrate = tk.Label(heartratezone, text="Heart Rate :", bg="white", font=('Arial', 11, 'bold'))
         heartratezone.add(heartrate)
-        self.heartrate1 = tk.Label(heartratezone, text="Heart Rate", bg="white",anchor="w")
+        self.heartrate1 = tk.Label(heartratezone, text="Heart Rate", bg="white",anchor="w",font=('Arial', 11))
         heartratezone.add(self.heartrate1)
 
-        block = tk.PanedWindow(PR1, orient=tk.HORIZONTAL, bg="white",height=130)
+        block = tk.PanedWindow(PR1, orient=tk.HORIZONTAL, bg="white",height=50)
         PR1.add(block)
 
-        rightside= tk.Frame(self.baseline,bg="white")
-        rightside.pack()
+        imageblock=tk.PanedWindow(self.baseline,orient=tk.VERTICAL,bg="white",width=20)
+        self.baseline.add(imageblock)
 
-        showdata=tk.PanedWindow(rightside,orient=tk.VERTICAL,bg="white")
-        showdata.pack(fill=tk.BOTH, expand=0)
-        title = tk.Label(text="Charts", font=('Arial', 10, 'bold'), width=20)
+        self.patientID=tk.PanedWindow(self.baseline,orient=tk.VERTICAL,bg="white")
+        self.baseline.add(self.patientID)
+        idLabel = tk.Label(self.patientID, text="Patient Photo ID", font=('Arial', 10, 'bold'),bg="white",anchor="w")
+        self.patientID.add(idLabel)
+
+        imageblock1=tk.PanedWindow(self.baseline,orient=tk.VERTICAL,bg="white",width=20)
+        self.baseline.add(imageblock1)
+
+        showdata=tk.PanedWindow(self.baseline,orient=tk.VERTICAL,bg="white")
+        self.baseline.add(showdata)
+        title = tk.Label(text="Patient Charts", font=('Arial', 10, 'bold'),bg="white" )
         showdata.add(title)
+
         charts = tk.PanedWindow(showdata, orient=tk.HORIZONTAL,bg="white")
         showdata.add(charts)
-        long = tk.PhotoImage(file="images/long250.gif")
-        longxray = tk.Label(image=long,bg="white")
-        longxray.photo=long
-        charts.add(longxray)
 
         neck = tk.PhotoImage(file="images/neck250.gif")
         neckxray = tk.Label(image=neck,bg="white")
@@ -224,8 +233,8 @@ class MyClientProtocol(WebSocketClientProtocol):
                     if frame is not None:
                         frame1 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                         self.cam1 = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame1))
-                        self.window.iconbitmap("images/favicon.ico")
                         self.update()
+                        self.window.iconbitmap("images/favicon.ico")
 
                 sys.exit()
 
@@ -274,8 +283,22 @@ class MyClientProtocol(WebSocketClientProtocol):
                     self.height1.configure(text=data["height"])
                     self.bmi1.configure(text=data["bmi"])
 
-                    self.center_window(self.window, self.width * 2, self.height * 1.8)
+                    try:
+                        cv_image = np.asanyarray(cPickle.loads(str(data["image"])))
+                        frame = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+                        resized = cv2.resize(frame, (120, 160), interpolation=cv2.INTER_LINEAR)
+                        idimage = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(resized))
 
+                    except Exception as e:
+                        print 'ERROR WITH PATIENT IMAGE - {}'.format(e)
+                        image = PIL.Image.open("images/obama.jpg")
+                        idimage = PIL.ImageTk.PhotoImage(image)
+
+                    patientid = tk.Label(image=idimage, bg="white")
+                    patientid.photo = idimage
+                    self.patientID.add(patientid)
+
+                    self.center_window(self.window, self.width * 2, self.height * 1.6)
                     self.secondscreen.pack()
 
                     self.mode = "DIAG"
@@ -352,7 +375,7 @@ if __name__ == '__main__':
     factory = WebSocketClientFactory(u"ws://127.0.0.1:8888/get")
     proto = MyClientProtocol
     factory.protocol = proto
-    factory.setProtocolOptions(autoPingInterval=1, autoPingTimeout=30, openHandshakeTimeout=30)
+    factory.setProtocolOptions(autoPingInterval=10, autoPingTimeout=60, openHandshakeTimeout=30)
 
     loop = asyncio.get_event_loop()
     coro = loop.create_connection(factory, '127.0.0.1', 8888)
